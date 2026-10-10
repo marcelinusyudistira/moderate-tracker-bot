@@ -9,8 +9,8 @@ from datetime import datetime
 # 1. CONFIGURATION
 # ==========================================
 # REPLACE THESE WITH YOUR ACTUAL VALUES (Keep the quotation marks!)
-TELEGRAM_TOKEN = "8700031510:AAGEpKDMzEfvI0W9W3w2EaCV2dSJS2A9JHs"
-TELEGRAM_CHAT_ID = "5340720353"
+TELEGRAM_TOKEN = os.environ.get("TELEGRAM_TOKEN")
+TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID")
 
 RISK_FREE_RATE = 0.060 
 
