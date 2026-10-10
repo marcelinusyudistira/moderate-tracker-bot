@@ -8,9 +8,10 @@ from datetime import datetime
 # ==========================================
 # 1. CONFIGURATION & ENVIRONMENT VARIABLES
 # ==========================================
-# These will be injected by GitHub Actions. If running locally, fill them in manually.
-TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN", "8700031510:AAGEpKDMzEfvI0W9W3w2EaCV2dSJS2A9JHs")
-TELEGRAM_CHAT_ID = os.environ.get("TELEGRAM_CHAT_ID", "5340720353")
+
+# PASTE YOUR REAL CREDENTIALS HERE FOR THIS TEST
+TELEGRAM_TOKEN = "8700031510:AAGEpKDMzEfvI0W9W3w2EaCV2dSJS2A9JHs"
+TELEGRAM_CHAT_ID = "5340720353"
 
 # Risk-Free Rate (Proxy for Indonesian SBN Ritel ~ 6.0%)
 RISK_FREE_RATE = 0.060 
