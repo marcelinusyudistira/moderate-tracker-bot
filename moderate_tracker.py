@@ -6,17 +6,14 @@ import requests
 from datetime import datetime
 
 # ==========================================
-# 1. CONFIGURATION & ENVIRONMENT VARIABLES
+# 1. CONFIGURATION
 # ==========================================
-
-# PASTE YOUR REAL CREDENTIALS HERE FOR THIS TEST
+# REPLACE THESE WITH YOUR ACTUAL VALUES (Keep the quotation marks!)
 TELEGRAM_TOKEN = "8700031510:AAGEpKDMzEfvI0W9W3w2EaCV2dSJS2A9JHs"
 TELEGRAM_CHAT_ID = "5340720353"
 
-# Risk-Free Rate (Proxy for Indonesian SBN Ritel ~ 6.0%)
 RISK_FREE_RATE = 0.060 
 
-# Assets to track automatically
 ASSETS = {
     "LQ45 (Equity)": "^JKLQ45",
     "Gold (Hedge)": "GC=F",
@@ -32,18 +29,15 @@ def fetch_and_calculate():
     
     for asset_name, ticker in ASSETS.items():
         try:
-            # Fetch last 2 years of data
             data = yf.download(ticker, period="2y", progress=False)
             if data.empty:
                 continue
             
-            # Handle multi-index columns from yfinance
             if isinstance(data.columns, pd.MultiIndex):
                 prices = data.xs('Close', level=0, axis=1).iloc[:, 0]
             else:
                 prices = data['Close']
 
-            # Calculate Metrics
             total_return = (prices.iloc[-1] / prices.iloc[0]) - 1
             years = 2.0
             ann_return = (1 + total_return) ** (1 / years) - 1
@@ -56,7 +50,6 @@ def fetch_and_calculate():
             drawdown = (prices / rolling_max) - 1
             max_dd = drawdown.min()
             
-            # Determine Asset Type for Scoring
             asset_type = "EQUITY" if "Equity" in asset_name else "HEDGE"
             
             results.append({
@@ -73,37 +66,29 @@ def fetch_and_calculate():
     return results, today
 
 def score_asset(asset):
-    """Scores the asset based on its type."""
     score = 5
     if asset["type"] == "EQUITY":
         if asset["ann_return"] >= 0.08: score += 2
         if asset["sharpe"] >= 0.8: score += 2
         if asset["max_dd"] >= -0.15: score += 1
-    else: # HEDGE (Gold/Valas)
+    else:
         if asset["sharpe"] >= 0.5: score += 2
         if asset["max_dd"] >= -0.10: score += 2
-        
     return min(score, 10)
 
 # ==========================================
 # 3. TELEGRAM INTEGRATION
 # ==========================================
 def send_telegram_message(results, today):
-    if TELEGRAM_TOKEN == "8700031510:AAGEpKDMzEfvI0W9W3w2EaCV2dSJS2A9JHs" or TELEGRAM_CHAT_ID == "5340720353":
-        print("⚠️ Telegram credentials not found. Printing to console instead:")
-        for r in results:
-            print(f"{r['name']}: Return {r['ann_return']:.2%}, Sharpe {r['sharpe']:.2f}")
-        return
-
-    # Format the message using HTML (safer than Markdown for Telegram)
+    # Safe debug: prints the last 5 characters of your token to prove it loaded
+    print(f"🔑 Token loaded, ending in: ...{TELEGRAM_TOKEN[-5:]}")
+    
     message = f"<b>📊 Daily Moderate Brief ({today})</b>\n\n"
     message += f"<i>Benchmark: SBN Ritel ~6.0% (Risk-Free)</i>\n\n"
     
     for asset in results:
         score = score_asset(asset)
         status = "✅ HOLD" if score >= 7 else "⚠️ REVIEW" if score >= 5 else "❌ AVOID"
-        
-        # Determine emoji based on return
         emoji = "🟢" if asset["ann_return"] > 0 else "🔴"
         
         message += f"<b>{emoji} {asset['name']}</b>\n"
@@ -115,7 +100,6 @@ def send_telegram_message(results, today):
 
     message += "<i>💡 Tip: Score 7+ means the asset aligns with moderate risk criteria.</i>"
 
-    # Send to Telegram
     url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
